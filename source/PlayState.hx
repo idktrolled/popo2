@@ -415,7 +415,7 @@ class PlayState extends MusicBeatState
 	function makeLuaSprite(spritePath:String,toBeCalled:String, drawBehind:Bool)
 	{
 		#if sys
-		var data:BitmapData = BitmapData.fromFile(Sys.getCwd() + "assets/data/" + PlayState.SONG.song.toLowerCase() + '/' + spritePath + ".png");
+		var data:BitmapData = openfl.utils.Assets.getBitmapData("assets/data/" + PlayState.SONG.song.toLowerCase() + '/' + spritePath + ".png");
 
 		var sprite:FlxSprite = new FlxSprite(0,0);
 		var imgWidth:Float = FlxG.width / data.width;
@@ -476,7 +476,7 @@ class PlayState extends MusicBeatState
 		repReleases = 0;
 
 		#if sys
-		executeModchart = FileSystem.exists(Paths.lua(PlayState.SONG.song.toLowerCase()  + "/modchart"));
+		executeModchart = openfl.utils.Assets.exists(Paths.lua(PlayState.SONG.song.toLowerCase() + "/modchart"));
 		#end
 		#if !cpp
 		executeModchart = false; // FORCE disable for non cpp targets //Hey, wtf is 'cpp targets'? -Haz
@@ -2592,10 +2592,15 @@ class PlayState extends MusicBeatState
 		// Per song offset check
 		#if cpp
 			var songPath = 'assets/data/' + PlayState.SONG.song.toLowerCase() + '/';
-			for(file in sys.FileSystem.readDirectory(songPath))
-			{
+			for (file in openfl.utils.Assets.list())
+{
+    if (file.indexOf(songPath) == 0)
+    {
+        // aquí ya es como si fuera readDirectory(songPath)
+    }
+}
 				var path = haxe.io.Path.join([songPath, file]);
-				if(!sys.FileSystem.isDirectory(path))
+				if (!path.endsWith("/"))
 				{
 					if(path.endsWith('.offset'))
 					{
@@ -2604,7 +2609,8 @@ class PlayState extends MusicBeatState
 						break;
 					}else {
 						trace('Offset file not found. Creating one @: ' + songPath);
-						sys.io.File.saveContent(songPath + songOffset + '.offset', '');
+						openfl.net.SharedObject.getLocal("offsets").data[songPath + songOffset + ".offset"] = "";
+openfl.net.SharedObject.getLocal("offsets").flush();
 					}
 				}
 			}
