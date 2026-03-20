@@ -10,7 +10,7 @@ import openfl.utils.AssetLibrary;
 import flixel.system.FlxAssets;
 import flash.system.System;
 
-// Lua
+// ua
 
 #if cpp
 import llua.Convert;
