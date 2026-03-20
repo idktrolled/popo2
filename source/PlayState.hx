@@ -2613,6 +2613,7 @@ class PlayState extends MusicBeatState
 openfl.net.SharedObject.getLocal("offsets").flush();
 					}
 				}
+				}
 			}
 		#end
 		var daBeats:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
