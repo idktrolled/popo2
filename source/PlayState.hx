@@ -10,7 +10,7 @@ import openfl.utils.AssetLibrary;
 import flixel.system.FlxAssets;
 import flash.system.System;
 
-// ua
+// Lua
 
 #if cpp
 import llua.Convert;
@@ -415,7 +415,18 @@ class PlayState extends MusicBeatState
 	function makeLuaSprite(spritePath:String,toBeCalled:String, drawBehind:Bool)
 	{
 		#if sys
-		var data:BitmapData = openfl.utils.Assets.getBitmapData("assets/data/" + PlayState.SONG.song.toLowerCase() + '/' + spritePath + ".png");
+var path = "assets/data/" + PlayState.SONG.song.toLowerCase() + '/' + spritePath + ".png";
+
+var data:BitmapData = null;
+
+if (Assets.exists(path))
+{
+    data = Assets.getBitmapData(path);
+}
+else
+{
+    trace("Image not found: " + path);
+}
 
 		var sprite:FlxSprite = new FlxSprite(0,0);
 		var imgWidth:Float = FlxG.width / data.width;
@@ -476,8 +487,9 @@ class PlayState extends MusicBeatState
 		repReleases = 0;
 
 		#if sys
-		executeModchart = openfl.utils.Assets.exists(Paths.lua(PlayState.SONG.song.toLowerCase() + "/modchart"));
-		#end
+executeModchart = Assets.exists(
+    Paths.lua(PlayState.SONG.song.toLowerCase() + "/modchart")
+);
 		#if !cpp
 		executeModchart = false; // FORCE disable for non cpp targets //Hey, wtf is 'cpp targets'? -Haz
 		#end
@@ -2591,30 +2603,35 @@ class PlayState extends MusicBeatState
 
 		// Per song offset check
 		#if cpp
-			var songPath = 'assets/data/' + PlayState.SONG.song.toLowerCase() + '/';
-			for (file in openfl.utils.Assets.list())
+var songPath = 'assets/data/' + PlayState.SONG.song.toLowerCase() + '/';
+
+// Lista de archivos conocidos (OpenFL no permite leer directorios dinámicamente)
+var possibleOffsets = [
+    '0.offset',
+    '1.offset',
+    '2.offset',
+    '3.offset'
+];
+
+var found:Bool = false;
+
+for (file in possibleOffsets)
 {
-    if (file.indexOf(songPath) == 0)
+    var path = songPath + file;
+
+    if (Assets.exists(path))
     {
-        // aquí ya es como si fuera readDirectory(songPath)
+        trace('Found offset file: ' + path);
+        songOffset = Std.parseFloat(file.substring(0, file.indexOf('.off')));
+        found = true;
+        break;
     }
 }
-				var path = haxe.io.Path.join([songPath, file]);
-				if (!path.endsWith("/"))
-				{
-					if(path.endsWith('.offset'))
-					{
-						trace('Found offset file: ' + path);
-						songOffset = Std.parseFloat(file.substring(0, file.indexOf('.off')));
-						break;
-					}else {
-						trace('Offset file not found. Creating one @: ' + songPath);
-						openfl.net.SharedObject.getLocal("offsets").data[songPath + songOffset + ".offset"] = "";
-openfl.net.SharedObject.getLocal("offsets").flush();
-					}
-				}
-				}
-			}
+
+if (!found)
+{
+    trace('Offset file not found (cannot create files on Android assets)');
+}
 		#end
 		var daBeats:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
 		for (section in noteData)
